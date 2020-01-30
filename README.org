@@ -1,0 +1,5 @@
+* Multipart Responses
+** Why?
+Allows a server to return multiple files in a single http response.
+Each file can include metadata like name, content-type, and charset (for text files).
+** Browser Use

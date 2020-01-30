@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title>Multipart Response Frontend Example</title>
+  </head>
+  <body>
+    <script>
+      var url = '/multipart-example';
+      fetch(url)
+      .then(function(resp){
+          return resp.formData();
+      })
+      .then(function(formData){
+          for(var file of formData.values()){
+              console.log(file.name);
+              console.log(file.type);
+              // can retrieve content with file.stream() or file.text()
+          }
+      })
+      .catch(console.log);
+    </script>
+  </body>
+</html>
