@@ -1,5 +1,63 @@
 * Multipart Responses
-** Why?
-Allows a server to return multiple files in a single http response.
-Each file can include metadata like name, content-type, and charset (for text files).
-** Browser Use
+** Multipart form-data content-type
+https://tools.ietf.org/html/rfc7578
+
+The multipart content-type encodes several blobs of content delimited by a "boundary".
+
+It can be used to pack multiple files into a single http request or response.
+
+Each file can be accompanied by metadata for name, content-type, and charset (for text files).
+
+It's most commonly used for html form submissions that mix ordinary form fields with
+file data.
+
+When the enctype="multipart/form-data" property is set on a form tag
+the body of the http request will be multipart encoded.
+
+** Why use multipart for responses?
+The multipart/form-data content type is rarely seen in http responses,
+but can be useful when a server wants to send multiple resources to the
+client in a single response.
+
+Each part is declared with it's own content type, which allows files of different
+types to be transported within the same response.
+
+Newer browsers support a convenient api for parsing these responses via the
+~.formData~ method of the fetch response body.
+
+https://developer.mozilla.org/en-US/docs/Web/API/Body/formData
+
+** Example server request handler (Django)
+#+BEGIN_SRC python
+def serve_multiple_files(request):
+    # return the contents of a directory in a single http response
+    parts = []
+    entries = (f for f in os.scandir('.') if f.is_file())
+    for i, entry in enumerate(entries):
+        with open(entry.path, 'rb') as handle:
+            content = handle.read()
+
+        parts.append(
+            MultipartFileContent(
+                content,
+                'field_{}'.format(i),
+                file_name=entry.name
+            )
+        )
+    return MultipartResponse(parts)
+#+END_SRC
+
+** Example browser client
+#+BEGIN_SRC javascript
+     fetch(url)
+     .then(function(resp){
+         return resp.formData();
+     })
+     .then(function(formData){
+         for(var file of formData.values()){
+             console.log(file.name);
+             console.log(file.type);
+             // can retrieve content with file.stream() or file.text()
+         }
+     })
+#+END_SRC
